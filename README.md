@@ -253,7 +253,7 @@ Para usuários experientes que querem instalar tudo rapidamente:
 
 ```bash
 # Download e execução em uma linha
-curl -fsSL https://raw.githubusercontent.com/seu-usuario/setup-zsh/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/samuelrms/setup-machine/main/install.sh | bash
 ```
 
 **⚠️ Aviso:** Esta opção não faz backup automático!
