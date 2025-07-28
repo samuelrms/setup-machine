@@ -132,6 +132,11 @@ main() {
     fi
     
     ((total++))
+    if check_command "bun" "Bun"; then
+        ((success++))
+    fi
+    
+    ((total++))
     if check_command "tsc" "TypeScript"; then
         ((success++))
     fi

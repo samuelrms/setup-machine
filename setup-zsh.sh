@@ -75,6 +75,8 @@ install_nodejs() {
     nvm alias default node
     
     npm install -g yarn pnpm typescript ts-node nodemon
+
+    curl -fsSL https://bun.sh/install | bash
 }
 
 install_dev_tools() {

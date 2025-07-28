@@ -103,6 +103,7 @@ O projeto oferece uma interface colorida e intuitiva, com:
 - **Gerenciadores de pacotes**:
   - **Yarn**: Gerenciador rápido e seguro
   - **pnpm**: Gerenciador eficiente em espaço
+  - **Bun**: Runtime JavaScript rápido e moderno
 - **Ferramentas de desenvolvimento**:
   - **TypeScript**: Superset tipado do JavaScript
   - **ts-node**: Executar TypeScript diretamente
@@ -156,6 +157,43 @@ Antes de começar, certifique-se de que:
 2. **Tem conexão com internet**
 3. **Tem privilégios sudo**
 4. **Está em um sistema suportado** (Ubuntu ou Rocky Linux)
+
+### 🔧 Instalação de Pré-requisitos
+
+Se você não tem os pré-requisitos instalados, execute estes comandos:
+
+**Ubuntu/Debian:**
+
+```bash
+# Atualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar pré-requisitos básicos
+sudo apt install -y curl git wget unzip build-essential
+```
+
+**Rocky Linux/CentOS/RHEL:**
+
+```bash
+# Atualizar sistema
+sudo dnf update -y
+
+# Instalar pré-requisitos básicos
+sudo dnf install -y curl git wget unzip gcc gcc-c++ make
+```
+
+**Verificar instalação:**
+
+```bash
+# Verificar se curl está disponível
+curl --version
+
+# Verificar se git está disponível
+git --version
+
+# Verificar se sudo funciona
+sudo -l
+```
 
 ### 🔍 Verificação Rápida
 
@@ -512,7 +550,7 @@ Este script verifica:
 
 - Ferramentas do sistema (ZSH, Git, Make, CMake)
 - Docker e Docker Compose
-- Node.js, NVM, NPM, Yarn, PNPM, TypeScript
+- Node.js, NVM, NPM, Yarn, PNPM, Bun, TypeScript
 - Oh My Zsh e plugins
 - Fontes Nerd Fonts
 
