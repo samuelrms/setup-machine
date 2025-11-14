@@ -208,6 +208,8 @@ install_fonts() {
 }
 
 main() {
+    detect_os
+    
     echo -e "${GREEN}🚀 Iniciando configuração inicial da máquina...${NC}"
     echo -e "${YELLOW}📋 Sistema detectado: $OS $VER${NC}"
     echo ""
