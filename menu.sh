@@ -28,6 +28,7 @@ show_menu() {
     echo -e "${YELLOW}5.${NC} 🔍 Verificar instalação"
     echo -e "${YELLOW}6.${NC} 📚 Mostrar documentação"
     echo -e "${YELLOW}7.${NC} 🔄 Executar tudo em sequência"
+    echo -e "${YELLOW}8.${NC} 🎨 Configurar Powerlevel10k (p10k configure)"
     echo -e "${YELLOW}0.${NC} 🚪 Sair"
     echo ""
 }
@@ -166,7 +167,94 @@ run_all_sequence() {
     fi
     
     echo ""
+    echo -e "${YELLOW}5. Configurando Powerlevel10k (opcional)...${NC}"
+    echo -e "${CYAN}💡 Deseja configurar o Powerlevel10k agora?${NC}"
+    read -p "Configurar Powerlevel10k? (s/N): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Ss]$ ]]; then
+        configure_p10k
+    else
+        echo -e "${YELLOW}⏭️  Configuração do Powerlevel10k pulada${NC}"
+        echo -e "${CYAN}💡 Você pode configurar depois usando a opção 8 do menu${NC}"
+    fi
+    
+    echo ""
     echo -e "${GREEN}🎉 Tudo executado com sucesso!${NC}"
+}
+
+configure_p10k() {
+    echo -e "${BLUE}🎨 Configurando Powerlevel10k...${NC}"
+    echo ""
+    
+    # Verificar se ZSH está instalado
+    if ! command -v zsh &> /dev/null; then
+        echo -e "${RED}❌ ZSH não está instalado!${NC}"
+        echo -e "${YELLOW}💡 Execute a opção 4 para instalar o ZSH primeiro.${NC}"
+        return 1
+    fi
+    
+    # Verificar se Powerlevel10k está instalado
+    if [ ! -d "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
+        echo -e "${RED}❌ Powerlevel10k não está instalado!${NC}"
+        echo -e "${YELLOW}💡 Execute a opção 4 para instalar o Powerlevel10k primeiro.${NC}"
+        return 1
+    fi
+    
+    # Verificar se .zshrc existe e tem o tema configurado
+    if [ ! -f "$HOME/.zshrc" ]; then
+        echo -e "${RED}❌ Arquivo .zshrc não encontrado!${NC}"
+        echo -e "${YELLOW}💡 Execute a opção 4 para instalar o Oh My Zsh primeiro.${NC}"
+        return 1
+    fi
+    
+    if ! grep -q "powerlevel10k" "$HOME/.zshrc"; then
+        echo -e "${YELLOW}⚠️  Powerlevel10k não está configurado no .zshrc${NC}"
+        echo -e "${YELLOW}💡 Configurando automaticamente...${NC}"
+        if grep -q "^ZSH_THEME=" "$HOME/.zshrc"; then
+            sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$HOME/.zshrc"
+        else
+            echo 'ZSH_THEME="powerlevel10k/powerlevel10k"' >> "$HOME/.zshrc"
+        fi
+        echo -e "${GREEN}✅ Tema configurado no .zshrc${NC}"
+    fi
+    
+    echo -e "${GREEN}✅ Tudo pronto para configurar o Powerlevel10k!${NC}"
+    echo ""
+    echo -e "${CYAN}📝 Iniciando configuração interativa do Powerlevel10k...${NC}"
+    echo -e "${YELLOW}💡 Você será guiado através de perguntas para personalizar seu prompt.${NC}"
+    echo ""
+    
+    # Executar p10k configure via ZSH (sempre, pois p10k só funciona no ZSH)
+    echo -e "${YELLOW}🔄 Iniciando ZSH para configurar o Powerlevel10k...${NC}"
+    echo ""
+    
+    # Carregar o ZSH e executar p10k configure
+    zsh << 'EOF'
+        # Carregar configurações do ZSH
+        export ZSH="$HOME/.oh-my-zsh"
+        [ -f "$HOME/.zshrc" ] && source "$HOME/.zshrc" 2>/dev/null
+        
+        # Verificar se p10k está disponível
+        if [ -f "$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme" ]; then
+            source "$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme" 2>/dev/null
+        fi
+        
+        # Executar p10k configure
+        if command -v p10k &> /dev/null; then
+            p10k configure
+        elif [ -f "$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme" ]; then
+            # Tentar carregar e executar manualmente
+            source "$HOME/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme"
+            p10k configure
+        else
+            echo "❌ Não foi possível executar p10k configure"
+            exit 1
+        fi
+EOF
+    
+    echo ""
+    echo -e "${GREEN}✅ Configuração do Powerlevel10k concluída!${NC}"
+    echo -e "${YELLOW}💡 Faça logout e login novamente para ver as mudanças aplicadas.${NC}"
 }
 
 process_choice() {
@@ -224,6 +312,10 @@ process_choice() {
                 echo -e "${YELLOW}❌ Operação cancelada${NC}"
             fi
             ;;
+        8)
+            echo ""
+            configure_p10k
+            ;;
         0)
             echo ""
             echo -e "${GREEN}👋 Até logo!${NC}"
@@ -241,7 +333,7 @@ main() {
         show_banner
         show_menu
         
-        read -p "Digite sua escolha (0-7): " choice
+        read -p "Digite sua escolha (0-8): " choice
         echo ""
         
         process_choice $choice
