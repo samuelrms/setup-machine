@@ -31,12 +31,10 @@ install_base_packages() {
             fontconfig-devel libX11-devel libXft-devel libXext-devel \
             libXrender-devel libXinerama-devel libXi-devel libXrandr-devel \
             libXcursor-devel libXcomposite-devel libXdamage-devel \
-            libXfixes-devel libXss-devel libXtst-devel alsa-lib-devel \
+            libXfixes-devel libXtst-devel alsa-lib-devel \
             mesa-libEGL-devel mesa-libGL-devel mesa-libGLU-devel \
-            mesa-libgbm-devel mesa-libwayland-egl-devel mesa-libxatracker-devel \
-            libdrm-devel libxcb-devel libxcb-dri2-devel libxcb-dri3-devel \
-            libxcb-glx-devel libxcb-present-devel libxcb-sync-devel \
-            libxcb-xfixes-devel libxshmfence-devel
+            mesa-libgbm-devel \
+            libdrm-devel libxcb-devel libxshmfence-devel 2>/dev/null || true
     else
         echo -e "${RED}❌ Sistema operacional não suportado: $OS${NC}"
         exit 1
@@ -96,7 +94,24 @@ install_dev_tools() {
 setup_zsh() {
     echo -e "${BLUE}⚙️ Configurando ZSH...${NC}"
     
-    chsh -s $(which zsh)
+    # Verificar se zsh está instalado
+    if ! command -v zsh &> /dev/null; then
+        echo -e "${YELLOW}⚠️  ZSH não encontrado. Tentando instalar...${NC}"
+        if [[ "$OS" == *"Ubuntu"* ]]; then
+            sudo apt install -y zsh
+        elif [[ "$OS" == *"Rocky"* ]] || [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"RHEL"* ]]; then
+            sudo dnf install -y zsh
+        fi
+    fi
+    
+    # Verificar novamente após tentativa de instalação
+    if ! command -v zsh &> /dev/null; then
+        echo -e "${RED}❌ Não foi possível instalar o ZSH. Por favor, instale manualmente.${NC}"
+        exit 1
+    fi
+    
+    ZSH_PATH=$(command -v zsh)
+    chsh -s "$ZSH_PATH"
     
     echo -e "${BLUE}📦 Instalando Oh My Zsh...${NC}"
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -104,13 +119,18 @@ setup_zsh() {
     ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
     
     echo -e "${BLUE}🔌 Instalando plugins...${NC}"
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-    git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
-    git clone https://github.com/paulirish/git-open "$ZSH_CUSTOM/plugins/git-open"
+    [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+        git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+    [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+    [ -d "$ZSH_CUSTOM/plugins/zsh-completions" ] || \
+        git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
+    [ -d "$ZSH_CUSTOM/plugins/git-open" ] || \
+        git clone https://github.com/paulirish/git-open "$ZSH_CUSTOM/plugins/git-open"
     
     echo -e "${BLUE}🎨 Instalando tema powerlevel10k...${NC}"
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+    [ -d "$ZSH_CUSTOM/themes/powerlevel10k" ] || \
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
     
     echo -e "${BLUE}⚙️ Configurando .zshrc...${NC}"
     
@@ -197,10 +217,32 @@ install_fonts() {
     mkdir -p ~/.local/share/fonts
     
     cd ~/.local/share/fonts
-    curl -fLo "MesloLGS NF Regular.ttf" https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Regular.ttf
-    curl -fLo "MesloLGS NF Bold.ttf" https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Bold.ttf
-    curl -fLo "MesloLGS NF Italic.ttf" https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Italic.ttf
-    curl -fLo "MesloLGS NF Bold Italic.ttf" https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Bold%20Italic.ttf
+    
+    # URLs atualizadas para as fontes MesloLGS NF
+    FONT_BASE_URL="https://github.com/romkatv/powerlevel10k-media/raw/master"
+    
+    echo -e "${YELLOW}📥 Baixando fontes MesloLGS NF...${NC}"
+    curl -fLo "MesloLGS NF Regular.ttf" "${FONT_BASE_URL}/MesloLGS%20NF%20Regular.ttf" || \
+        curl -fLo "MesloLGS NF Regular.ttf" "https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Regular.ttf" || \
+        echo -e "${YELLOW}⚠️  Não foi possível baixar MesloLGS NF Regular.ttf${NC}"
+    
+    curl -fLo "MesloLGS NF Bold.ttf" "${FONT_BASE_URL}/MesloLGS%20NF%20Bold.ttf" || \
+        curl -fLo "MesloLGS NF Bold.ttf" "https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Bold.ttf" || \
+        echo -e "${YELLOW}⚠️  Não foi possível baixar MesloLGS NF Bold.ttf${NC}"
+    
+    curl -fLo "MesloLGS NF Italic.ttf" "${FONT_BASE_URL}/MesloLGS%20NF%20Italic.ttf" || \
+        curl -fLo "MesloLGS NF Italic.ttf" "https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Italic.ttf" || \
+        echo -e "${YELLOW}⚠️  Não foi possível baixar MesloLGS NF Italic.ttf${NC}"
+    
+    curl -fLo "MesloLGS NF Bold Italic.ttf" "${FONT_BASE_URL}/MesloLGS%20NF%20Bold%20Italic.ttf" || \
+        curl -fLo "MesloLGS NF Bold Italic.ttf" "https://github.com/romkatv/powerlevel10k/raw/master/font/MesloLGS%20NF%20Bold%20Italic.ttf" || \
+        echo -e "${YELLOW}⚠️  Não foi possível baixar MesloLGS NF Bold Italic.ttf${NC}"
+    
+    # Alternativa: usar Nerd Fonts se as fontes do Powerlevel10k não estiverem disponíveis
+    if [ ! -f "MesloLGS NF Regular.ttf" ]; then
+        echo -e "${YELLOW}💡 Tentando baixar fontes alternativas...${NC}"
+        curl -fLo "MesloLGS NF Regular.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Meslo/L/Regular/complete/Meslo%20LG%20L%20Regular%20Nerd%20Font%20Complete.ttf" || true
+    fi
     
     fc-cache -f -v
     
